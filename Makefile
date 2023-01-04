@@ -47,6 +47,12 @@ migrate:
 	echo
 
 
+.PHONY: test
+test:
+	LOGGING_FORMAT_JSON=0 \
+		.venv/bin/python -m pytest $(TOP_LEVEL_PACKAGE)
+
+
 .PHONY: dev.psql
 dev.psql:
 	PGPASSWORD=demo_pass PGUSER=demo_user $(PSQL)
