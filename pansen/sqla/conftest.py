@@ -1,9 +1,11 @@
 import warnings
 
 import pytest_asyncio
+from sqlalchemy import create_engine, text
 
 from pansen.sqla.config import Config, configure
 from pansen.sqla.models import AsyncSessionMaker
+from pansen.sqla.models.meta import metadata
 
 warnings.filterwarnings("error")
 import logging
@@ -75,3 +77,29 @@ def config(_config: Config, event_loop) -> Config:
         _config.POSTGRES_URL = _config.POSTGRES_URL + '_test'
 
     yield _config
+
+
+@pytest.fixture(scope="module")
+def db_schema_migrations(request, _sync_sqla_engine):
+    with _sync_sqla_engine.begin() as conn:
+        conn.execute(
+            text(
+                'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+            ))
+        metadata.bind = _sync_sqla_engine
+        metadata.drop_all()
+        metadata.create_all(conn)
+
+
+@pytest.fixture(scope="module")
+def _sync_sqla_engine():
+    # HACK this is a copy
+    config = configure()
+
+    sqla_engine = create_engine(
+        # Don't use `config.SQLA_URL` here, as we're not in async mode.
+        config.POSTGRES_URL,
+        echo=False,
+    )
+
+    yield sqla_engine

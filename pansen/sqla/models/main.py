@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, text, ForeignKey
+from sqlalchemy import Column, text, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -19,9 +19,11 @@ class Parent(Base):
                             order_by="desc(Child.created_at)",
                             uselist=True,
                             # https://docs.sqlalchemy.org/en/14/orm/relationship_api.html#sqlalchemy.orm.relationship.params.back_populates
-                            back_populates='hedge',
+                            back_populates='parent',
                             cascade="save-update, merge, delete, delete-orphan"
                             )  # type: List[Child]
+    created_at = Column('created_at', DateTime(timezone=True), server_default=text("now()"),
+                        nullable=False)
 
 
 class Child(Base):
@@ -30,3 +32,5 @@ class Child(Base):
     id = Column(UUID, primary_key=True, unique=True, server_default=text("uuid_generate_v1()"))
     parent_id = Column(UUID, ForeignKey("parent.id"), primary_key=True)
     parent = relationship('Parent', back_populates='children', )
+    created_at = Column('created_at', DateTime(timezone=True), server_default=text("now()"),
+                        nullable=False)
