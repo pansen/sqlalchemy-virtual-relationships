@@ -1,0 +1,34 @@
+version: '3.2'
+services:
+
+  db:
+    image: postgres:13
+    # configure
+    # - logging, we want to see all statements. setting `log_min_duration_statement` causes to
+    #   log to the same line (better than `log_statement` and `log_duration`)
+    # - performance, memory settings assume you have 8+ GB of RAM
+    command: >
+      postgres
+        -c log_destination=stderr
+        -c logging_collector=off
+        -c log_min_duration_statement=0
+        -c max_wal_size=1GB
+        -c debug_pretty_print=on
+        -c log_checkpoints=on
+        -c shared_buffers=500MB
+        -c effective_cache_size=1024MB
+        -c checkpoint_completion_target=0.8
+        -c work_mem=4MB
+    ports:
+      - 127.0.0.1:5445:5432
+    environment:
+      POSTGRES_USER: demo_user
+      POSTGRES_PASSWORD: demo_pass
+      POSTGRES_DB: demo_dev
+    volumes:
+      - 'pg_data:/var/lib/postgresql/data:delegated'
+    expose:
+      - 5445
+
+volumes:
+  pg_data:

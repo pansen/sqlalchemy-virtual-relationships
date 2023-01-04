@@ -8,6 +8,8 @@ export PYTHONASYNCIODEBUG=1
 export SETUPTOOLS_USE_DISTUTILS=stdlib
 
 PYTHON_GLOBAL := $(shell /usr/bin/which python3)
+PG_CONNECTION_PARAMS := --host=localhost --port=5445 --dbname=demo_dev
+PSQL := psql -P pager=off $(PG_CONNECTION_PARAMS)
 
 TOP_LEVEL_PACKAGE := pansen
 
@@ -34,6 +36,26 @@ bootstrap:
 .PHONY: dev.build
 dev.build: .env var
 	$(POETRY) install
+
+.PHONY: dev.migrate
+dev.migrate:
+	echo 'create database demo_dev_test;' | make dev.psql
+	@make migrate
+
+.PHONY: migrate
+migrate:
+	echo
+
+
+.PHONY: test
+test:
+	LOGGING_FORMAT_JSON=0 \
+		.venv/bin/python -m pytest $(TOP_LEVEL_PACKAGE)
+
+
+.PHONY: dev.psql
+dev.psql:
+	PGPASSWORD=demo_pass PGUSER=demo_user $(PSQL)
 
 var:
 	mkdir -p var
