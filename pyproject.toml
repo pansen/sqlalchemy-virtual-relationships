@@ -32,7 +32,6 @@ pytz = "*"
 asyncpg = "*"
 sqlalchemy = "^1.4.25"
 psycopg2-binary = "*"
-alembic = "*"
 pydantic = {extras = ["dotenv"], version = "^1.10.4"}
 python-json-logger = "^2.0.4"
 greenlet = "^2.0.1"
