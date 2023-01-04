@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "sqlalchemy_virtual_relationships"
+version = "0.0.1"
+description = "Demo for virtual relationships with SQLAlchemy"
+readme = "README.md"
+authors = ["pansen"]
+include = []
+
+# This is required for our namespace package to work
+# https://python-poetry.org/docs/pyproject/#packages
+packages = [
+    { include = "pansen" }
+]
+repository = ""
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Internet",
+    "Topic :: System :: Archiving",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: MacOS"
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+
+python-dotenv = "*"
+pytz = "*"
+
+# db and models
+asyncpg = "*"
+sqlalchemy = "^1.4.25"
+psycopg2-binary = "*"
+alembic = "*"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+
+
+[build-system]
+requires = ["poetry>=1.2", "setuptools", "wheel", "Cython"]
+build-backend = "poetry.masonry.api"
+
