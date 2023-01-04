@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, text, ForeignKey, DateTime
+from sqlalchemy import Column, text, ForeignKey, DateTime, select, func, desc, and_
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, aliased, foreign
 
 from pansen.sqla.models.meta import Base
 
@@ -34,3 +34,33 @@ class Child(Base):
     parent = relationship('Parent', back_populates='children', )
     created_at = Column('created_at', DateTime(timezone=True), server_default=text("now()"),
                         nullable=False)
+
+
+# magic without views
+# -------------------
+# see:
+# - https://docs.sqlalchemy.org/en/14/orm/join_conditions.html#row-limited-relationships-with-window-functions
+# - https://docs.sqlalchemy.org/en/14/orm/join_conditions.html#composite-secondary-joins
+
+CHILDREN_CAPPED_COUNT = 2
+
+ChildPartition = select(
+    Child,
+    func.row_number().over(order_by=desc(Child.created_at),
+                           partition_by=Child.parent_id).label("index"),
+    ) \
+    .alias()
+
+ChildPartitioned = aliased(Child, ChildPartition)
+
+Parent.children_capped = relationship(
+    ChildPartitioned,
+    primaryjoin=lambda: and_(
+        # Ensure that only those columns referring to a parent column are marked as foreign, either via the foreign() annotation or via the foreign_keys argument.
+        foreign(ChildPartitioned.parent_id) == Parent.id,
+        ChildPartition.c.index <= CHILDREN_CAPPED_COUNT,
+    ),
+    # https://docs.sqlalchemy.org/en/14/orm/relationship_api.html#sqlalchemy.orm.relationship.params.foreign_keys
+    foreign_keys=[Child.parent_id, ],
+    uselist=True
+)
